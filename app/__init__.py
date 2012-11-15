@@ -1,6 +1,7 @@
 from flask import Flask, request, current_app,render_template
 from flask.ext.sqlalchemy import SQLAlchemy, DeclarativeMeta
 from json import JSONEncoder, dumps
+import os
 
 db = SQLAlchemy()
 
@@ -95,7 +96,7 @@ def get_guest(id):
 
 def setup_db(tables=0, seats_per_table=0):
 	import psycopg2
-	conn = psycopg2.connect("dbname=ulitanzen user=dev password=dev")
+	conn = psycopg2.connect(os.environ.get('DATABASE_URL','postgresql://dev:dev@localhost/ulitanzen'))
 	cur = conn.cursor()
 	for tn in range(0,tables):
 		for sn in range(0, seats_per_table):
