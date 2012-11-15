@@ -1,1 +1,1 @@
-web: supervisor -p app.js
+web: python run.py
