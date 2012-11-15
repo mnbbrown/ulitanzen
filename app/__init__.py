@@ -95,12 +95,14 @@ def get_guest(id):
 
 
 def setup_db(tables=0, seats_per_table=0):
-	import psycopg2
-	conn = psycopg2.connect(os.environ.get('DATABASE_URL','postgresql://dev:dev@localhost/ulitanzen'))
-	cur = conn.cursor()
+	from sqlalchemy import create_engine
+	from sqlalchemy.orm import sessionmaker
+
+	some_engine = create_engine(os.environ.get('DATABASE_URL','postgresql://dev:dev@localhost/ulitanzen'))
+	Session = sessionmaker(bind=some_engine)
+	session = Session()
 	for tn in range(0,tables):
 		for sn in range(0, seats_per_table):
-			cur.execute("INSERT INTO seats (number, table_number) VALUES (%s, %s)",(sn+1,tn+1))
-	conn.commit()
-	cur.close()
-	conn.close()
+			query = "INSERT INTO seats (number, table_number) VALUES ({0}, {1})".format(sn+1,tn+1)
+			session.execute(query)
+	session.commit()
