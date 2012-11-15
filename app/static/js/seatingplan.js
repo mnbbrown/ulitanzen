@@ -157,7 +157,7 @@ function initDisplay() {
 	names = new Array();
 	users = new Array();
 
-	jQuery.getJSON("http://localhost:5000/api/guests", success = function(data) {
+	jQuery.getJSON("/api/guests", success = function(data) {
 		jQuery.each(data, function(index, value) {
 			users[value.name] = new Array();
 			users[value.name]["id"] = value.id;
@@ -171,7 +171,7 @@ function initDisplay() {
 			userInit(names, users);
 			return false;
 		});
-		jQuery.getJSON("http://localhost:5000/api/seats", success = function(data) {
+		jQuery.getJSON("/api/seats", success = function(data) {
 			jQuery.each(data, function(index, value) {
 				if(value.table_number !== 0 || value.number !== 0) {
 					reservations[value.table_number][value.number] = value.guest_id;
@@ -244,7 +244,7 @@ function seatReserve(table, seatID) {
 		seat.attr("title","Reserviert von: " + jQuery("#userName").text());
 		addToolTip(seat, seatID);
 
-		jQuery.getJSON("http://localhost:5000/api/seats", success = function(data) {
+		jQuery.getJSON("/api/seats", success = function(data) {
 			var reservations = new Array();
 			for(var i= 1; i<12;i++) {
 				reservations[i] = new Array()
@@ -258,7 +258,7 @@ function seatReserve(table, seatID) {
 
 			if(reservations[table][seatID] === null){
 				var id = (10*parseInt(table)-10)+parseInt(seatID)
-				var url = "http://localhost:5000/api/seats/" + id.toString()
+				var url = "/api/seats/" + id.toString()
 				console.log(url)
 				jQuery.ajax({
 					url: url,
