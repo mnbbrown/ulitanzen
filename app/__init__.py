@@ -2,8 +2,11 @@ from flask import Flask, request, current_app,render_template
 from flask.ext.sqlalchemy import SQLAlchemy, DeclarativeMeta
 from json import JSONEncoder, dumps
 import os
+from werkzeug.contrib.cache import RedisCache
 
 db = SQLAlchemy()
+
+cache = RedisCache()
 
 app = Flask(__name__)
 app.config.from_object('config')
@@ -41,6 +44,10 @@ def new_alchemy_encoder(revisit_self = False, fields_to_expand = []):
 def jsonify(*args):
 	return current_app.response_class(dumps(*args, indent=2, cls=new_alchemy_encoder(), check_circular=False), mimetype='application/json')
 
+def invalidateCache(identifier):
+	print "Invalidating Cache!!"
+	cache.delete(identifier)
+
 class Seat(db.Model):
 	__tablename__ = 'seats'
 
@@ -64,7 +71,12 @@ def index():
 
 @app.route('/api/seats',methods=["GET"])
 def list_seats():
-	seats = Seat.query.all()
+	cacheId = "seats/list"
+	seats = cache.get(cacheId)
+	if seats is None:
+		print "Calling DB"
+		seats = Seat.query.all()
+		cache.set(cacheId, seats, timeout=60*5)
 	return jsonify(seats)
 
 @app.route('/api/guests/<int:id>/seats')
@@ -74,6 +86,8 @@ def get_guest_seats(id):
 
 @app.route('/api/seats/<int:id>', methods=["PUT"])
 def update_seat(id):
+	invalidateCache("seats/list")
+	invalidateCache("guests/list")
 	guest = Guest.query.get_or_404(request.form.get('guest_id',None))
 	guest.seats_booked = guest.seats_booked - 1;
 	seat = Seat.query.get_or_404(id)
@@ -85,7 +99,12 @@ def update_seat(id):
 
 @app.route('/api/guests', methods=['GET'])
 def list_guests():
-	guests = Guest.query.all()
+	cacheId = "guests/list"
+	guests = cache.get(cacheId)
+	if guests is None:
+		print "Calling DB"
+		guests = Guest.query.all()
+		cache.set(cacheId, guests, timeout=60*5)
 	return jsonify(guests)
 
 @app.route('/api/guests/<int:id>', methods=['GET'])
