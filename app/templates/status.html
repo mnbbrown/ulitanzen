@@ -1,46 +1,60 @@
-<style>
+<html>
+<head>
+	<title>Status of ULITANZEN</title>
+	<style>
 
-body {
-	font-family: "Helvetica Neue";
-	font-weight:bold;
-	letter-spacing:2px;
-}
+		body {
+			font-family: "Helvetica Neue";
+			font-weight:bold;
+			letter-spacing:2px;
+		}
 
-#status {
-	width: 300px;
-	margin: 0 auto;
-}
+		#status {
+			width: 300px;
+			margin: 0 auto;
+		}
 
-ul {
-	list-style: none;
-	padding: 0;
-	margin: 0;
-	width: 100%;
-}
+		ul {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+			width: 100%;
+		}
 
-ul li {
-	line-height: 60px;
-	margin: 10px;
-	padding: 0;
-	width: 100%;
-	text-align: center;
-	color: #fff;
-}
+		ul li {
+			line-height: 60px;
+			margin: 10px;
+			padding: 0;
+			width: 100%;
+			text-align: center;
+			color: #fff;
+		}
 
-ul li.running {
-	background-color: #436117;
-}
+		ul li.running {
+			background-color: #436117;
+		}
 
-ul li.error {
-	background-color: orange;
-}
+		ul li.error {
+			background-color: orange;
+		}
 
-</style>
+	</style>
 
-<div id="status">
-	<ul>
-		{% for service in services %}
-		  <li class="{{ service.status_str|lower }}">{{ service.name  }}</li>
-		{% endfor %}
-	</ul>
-</div>
+	<script type="text/javaScript">
+
+		function refresh(timeoutPeriod) {
+			setTimeout("location.reload(true);",timeoutPeriod);
+		}
+
+	</script>
+</head>
+
+<body onload="javascript:refresh(5000)">
+	<div id="status">
+		<ul>
+			{% for service in services %}
+			  <li class="{{ service.status_str|lower }}">{{ service.name  }}</li>
+			{% endfor %}
+		</ul>
+	</div>
+</body>
