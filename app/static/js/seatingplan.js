@@ -229,7 +229,6 @@ function finish() {
 }
 
 
-
 function seatReserve(table, seatID) {
 
 	return function() {

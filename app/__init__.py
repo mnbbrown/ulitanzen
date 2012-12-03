@@ -3,6 +3,7 @@ from flask.ext.sqlalchemy import SQLAlchemy, DeclarativeMeta
 from json import JSONEncoder, dumps
 import os
 from werkzeug.contrib.cache import RedisCache
+from subprocess import call
 
 db = SQLAlchemy()
 
@@ -56,6 +57,25 @@ class Seat(db.Model):
 	table_number = db.Column(db.Integer)
 	guest_id = db.Column(db.Integer, db.ForeignKey('guests.id'))
 
+	def book(self, guest=None):
+		guest.seats_booked = guest.seats_booked - 1;
+		self.guest_id = request.form.get('guest_id',None)
+		db.session.add(self)
+		db.session.add(guest)
+		db.session.commit()
+
+	def unbook(self):
+		if self.guest_id is not None:
+			current_guest = Guest.query.get_or_404(self.guest_id)
+			current_guest.seats_booked = current_guest.seats_booked + 1;
+			self.guest_id = None
+			db.session.add(current_guest)
+			db.session.add(self)
+			db.session.commit()
+
+
+
+
 class Guest(db.Model):
 	__tablename__ = 'guests'
 
@@ -84,17 +104,30 @@ def get_guest_seats(id):
 	seats = Seat.query.filter_by(guest_id=id).all()
 	return jsonify(seats)
 
+@app.route('/api/guests/<int:id>/seats', methods=['DELETE'])
+def unbook_guest_seats(id):
+	seats = Seat.query.filter_by(guest_id=id).all()
+	for seat in seats:
+		seat.unbook()
+	return jsonify(200)
+
+
 @app.route('/api/seats/<int:id>', methods=["PUT"])
 def update_seat(id):
 	invalidateCache("seats/list")
 	invalidateCache("guests/list")
-	guest = Guest.query.get_or_404(request.form.get('guest_id',None))
-	guest.seats_booked = guest.seats_booked - 1;
 	seat = Seat.query.get_or_404(id)
-	seat.guest_id = request.form.get('guest_id',None)
-	db.session.add(guest)
-	db.session.add(seat)
-	db.session.commit()
+	new_guest_id = request.form.get('guest_id')
+	if new_guest_id is None and seat.guest_id is not None:
+		seat.unbook()
+	elif new_guest_id is not None and seat.guest_id is None:
+		guest = Guest.query.get_or_404(new_guest_id)
+		seat.book(guest)
+	return jsonify(seat)
+
+@app.route('/api/seats/<int:id>', methods=['GET'])
+def get_seat(id):
+	seat = Seat.query.get_or_404(id)
 	return jsonify(seat)
 
 @app.route('/api/guests', methods=['GET'])
@@ -111,6 +144,14 @@ def list_guests():
 def get_guest(id):
 	guest = Guest.query.get_or_404(id)
 	return jsonify(guest)
+
+@app.route('/api/status', methods=['GET'])
+def app_status():
+	import check
+	services = []
+	services.append(check.check_redis())
+	services.append(check.check_postgres())
+	return render_template('status.html', services=services)
 
 
 def setup_db(tables=0, seats_per_table=0):

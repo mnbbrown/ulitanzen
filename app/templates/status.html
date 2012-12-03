@@ -1,0 +1,46 @@
+<style>
+
+body {
+	font-family: "Helvetica Neue";
+	font-weight:bold;
+	letter-spacing:2px;
+}
+
+#status {
+	width: 300px;
+	margin: 0 auto;
+}
+
+ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	width: 100%;
+}
+
+ul li {
+	line-height: 60px;
+	margin: 10px;
+	padding: 0;
+	width: 100%;
+	text-align: center;
+	color: #fff;
+}
+
+ul li.running {
+	background-color: #436117;
+}
+
+ul li.error {
+	background-color: orange;
+}
+
+</style>
+
+<div id="status">
+	<ul>
+		{% for service in services %}
+		  <li class="{{ service.status_str|lower }}">{{ service.name  }}</li>
+		{% endfor %}
+	</ul>
+</div>
