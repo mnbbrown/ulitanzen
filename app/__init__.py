@@ -73,9 +73,6 @@ class Seat(db.Model):
 			db.session.add(self)
 			db.session.commit()
 
-
-
-
 class Guest(db.Model):
 	__tablename__ = 'guests'
 
@@ -153,6 +150,10 @@ def app_status():
 	services.append(check.check_postgres())
 	return render_template('status.html', services=services)
 
+@app.teardown_request
+def request_teardown(e=None):
+	db.session.remove()
+	print "Tearing down request"
 
 def setup_db(tables=0, seats_per_table=0):
 	from sqlalchemy import create_engine
