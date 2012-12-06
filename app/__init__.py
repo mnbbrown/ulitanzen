@@ -150,6 +150,15 @@ def app_status():
 	services.append(check.check_postgres())
 	return render_template('status.html', services=services)
 
+@app.route('/api/pingdom')
+def pingdom_check():
+	return '''
+		<pingdom_http_custom_check>
+		<status>OK</status>
+		<response_time>96.777</response_time>
+		</pingdom_http_custom_check>
+	'''
+
 @app.teardown_request
 def request_teardown(e=None):
 	db.session.remove()
