@@ -150,7 +150,7 @@ def app_status():
 	services.append(check.check_postgres())
 	return render_template('status.html', services=services)
 
-@app.route('/api/pingdom')
+@app.route('/api/pingdom', methods=['GET'])
 def pingdom_check():
 	return '''
 		<pingdom_http_custom_check>
@@ -158,11 +158,6 @@ def pingdom_check():
 		<response_time>96.777</response_time>
 		</pingdom_http_custom_check>
 	'''
-
-@app.teardown_request
-def request_teardown(e=None):
-	db.session.remove()
-	print "Tearing down request"
 
 def setup_db(tables=0, seats_per_table=0):
 	from sqlalchemy import create_engine
